@@ -86,7 +86,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         //text is the field in firestore
                         "sender": loggedInUser.email,
                         //sender is the field in firestore
-                        "dateTime": DateTime.now(),
                       }); //need to make sure this "messages" is the collection in firestore.
                     },
                     child: Text(
@@ -109,7 +108,7 @@ class MessageStream extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
       //the type QuerySnapshot is gotten from firestore snapshots...
-      stream: _firestore.collection("messages").orderBy("dateTime", descending: true).snapshots(),
+      stream: _firestore.collection("messages").snapshots(),
       //from here the QuerySnapshot coming
       builder: (context, snapshot) {
         List<MessageBubble> messageBubbles = [];
@@ -121,17 +120,15 @@ class MessageStream extends StatelessWidget {
           );
         }
         final messages = snapshot.data
-            .documents; //by defining the type of streambuilder QuerySnapshot then the snapshot data type change to querysnapshot too.
+            .documents.reversed; //by defining the type of streambuilder QuerySnapshot then the snapshot data type change to querysnapshot too.
         for (var message in messages) {
           final messageText = message.data["text"];
           final messageSender = message.data["sender"];
-          final messageTime = message.data["dateTime"];
           final currentUser = loggedInUser.email;
           final messageBubble = MessageBubble(
-              text: messageText,
-              sender: messageSender,
-              time: messageTime,
-              isMe: currentUser == messageSender,
+            text: messageText,
+            sender: messageSender,
+            isMe: currentUser == messageSender,
           );
           messageBubbles.add(messageBubble);
         }
@@ -149,10 +146,9 @@ class MessageStream extends StatelessWidget {
 
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble({this.sender, this.text, this.time, this.isMe});
+  MessageBubble({this.sender, this.text, this.isMe});
   final String sender;
   final String text;
-  final Timestamp time;
   final bool isMe;
 
   @override
@@ -187,16 +183,6 @@ class MessageBubble extends StatelessWidget {
                   fontSize: 15.0,
                 ),
               ),
-            ),
-          ),
-          SizedBox(height: 5.0),
-          Text(
-            "${time.toDate().hour.toString().padLeft(2, '0')}:${time
-              .toDate().minute.toString().padLeft(2, '0')}:${time
-              .toDate().second.toString().padLeft(2, '0')}",
-            style: TextStyle(
-              fontSize: 9.0,
-              color: Colors.black54,
             ),
           ),
         ],
